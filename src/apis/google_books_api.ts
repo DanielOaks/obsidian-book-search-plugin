@@ -16,9 +16,13 @@ export class GoogleBooksApi implements BaseBooksApiImpl {
     return local === 'default' ? window.moment.locale() : local;
   }
 
-  private buildSearchParams(query: string, options?: Record<string, string>): Record<string, string | number> {
+  private buildSearchParams(
+    query: string,
+    searchType: string,
+    options?: Record<string, string>,
+  ): Record<string, string | number> {
     const params: Record<string, string | number> = {
-      q: query,
+      q: `${searchType == 'isbn' ? 'isbn:' : ''}${query}`,
       maxResults: GoogleBooksApi.MAX_RESULTS,
       printType: GoogleBooksApi.PRINT_TYPE,
       langRestrict: this.getLanguageRestriction(options?.locale || this.localePreference),
@@ -30,9 +34,9 @@ export class GoogleBooksApi implements BaseBooksApiImpl {
     return params;
   }
 
-  async getByQuery(query: string, options?: Record<string, string>): Promise<Book[]> {
+  async getByQuery(query: string, searchType: string, options?: Record<string, string>): Promise<Book[]> {
     try {
-      const params = this.buildSearchParams(query, options);
+      const params = this.buildSearchParams(query, searchType, options);
       const searchResults = await apiGet<GoogleBooksResponse>('https://www.googleapis.com/books/v1/volumes', params);
       if (!searchResults?.totalItems) return [];
       return searchResults.items.map(({ volumeInfo }) => this.createBookItem(volumeInfo));

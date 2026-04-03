@@ -52,8 +52,8 @@ export default class BookSearchPlugin extends Plugin {
   }
 
   // open modal for book search
-  async searchBookMetadata(query?: string): Promise<Book> {
-    const searchedBooks = await this.openBookSearchModal(query);
+  async searchBookMetadata(query?: string, searchType?: string): Promise<Book> {
+    const searchedBooks = await this.openBookSearchModal(query, searchType);
     return await this.openBookSuggestModal(searchedBooks);
   }
 
@@ -189,9 +189,9 @@ export default class BookSearchPlugin extends Plugin {
     await new CursorJumper(this.app).jumpToNextCursorLocation();
   }
 
-  async openBookSearchModal(query = ''): Promise<Book[]> {
+  async openBookSearchModal(query = '', searchType = ''): Promise<Book[]> {
     return new Promise((resolve, reject) => {
-      return new BookSearchModal(this, query, (error, results) => {
+      return new BookSearchModal(this, query, searchType, (error, results) => {
         return error ? reject(error) : resolve(results);
       }).open();
     });

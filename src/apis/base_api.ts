@@ -7,7 +7,7 @@ import { NaverBooksApi } from './naver_books_api';
 import { OpenLibraryBooksApi } from './openlibrary_books_api';
 
 export interface BaseBooksApiImpl {
-  getByQuery(query: string, options?: Record<string, string>): Promise<Book[]>;
+  getByQuery(query: string, searchType: string, options?: Record<string, string>): Promise<Book[]>;
 }
 
 class ConfigurationError extends Error {

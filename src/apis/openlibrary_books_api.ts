@@ -10,13 +10,14 @@ function formatList(list?: string[]): string {
 }
 
 export class OpenLibraryBooksApi implements BaseBooksApiImpl {
-  async getByQuery(query: string) {
+  async getByQuery(query: string, searchType: string) {
     try {
       const params = {
-        q: query,
+        q: `${searchType == 'isbn' ? 'isbn:' : ''}${query}`,
         fields: 'isbn,title,subtitle,cover_i,publish_date,publisher,author_name,number_of_pages_median',
       };
       const searchResults = await apiGet<OpenLibraryBooksResponse>('https://openlibrary.org/search.json', params);
+      console.log(`Book Search: q: ${query}, searchResults: ${searchResults}`);
       if (!searchResults?.numFound) {
         return [];
       }
@@ -31,18 +32,20 @@ export class OpenLibraryBooksApi implements BaseBooksApiImpl {
   private createBookItem(item: OpenLibraryBookItem): Book {
     // Open Library sometimes includes the publisher in the authors
     const authors =
-      item.author_name?.length > 1 ? item.author_name?.filter(el => el != item?.publisher[0]) : item.author_name;
+      (item.author_name?.length || 0) > 1
+        ? item.author_name?.filter(el => !item.publisher?.includes(el))
+        : item.author_name;
     return {
       title: item.title,
       subtitle: item.subtitle,
       author: formatList(authors),
-      authors,
+      authors: authors || [],
       publisher: item.publisher?.[0],
       publishDate: item.publish_date && new Date(item.publish_date?.[0]).toISOString().slice(0, 10),
       totalPage: item.number_of_pages_median,
-      isbn: item.isbn.sort((a, b) => b.length - a.length)[0],
-      ...(item.isbn.some(isbn10) && { isbn10: item.isbn.find(isbn10) }),
-      ...(item.isbn.some(isbn13) && { isbn13: item.isbn.find(isbn13) }),
+      isbn: item.isbn?.sort((a, b) => b.length - a.length)[0],
+      ...(item.isbn?.some(isbn10) && { isbn10: item.isbn?.find(isbn10) }),
+      ...(item.isbn?.some(isbn13) && { isbn13: item.isbn?.find(isbn13) }),
       ...(Object.keys(item).includes('cover_i') && {
         coverUrl: `https://covers.openlibrary.org/b/id/${item.cover_i}-L.jpg`,
         coverMediumUrl: `https://covers.openlibrary.org/b/id/${item.cover_i}-M.jpg`,

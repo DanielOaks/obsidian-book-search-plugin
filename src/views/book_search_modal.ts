@@ -4,7 +4,7 @@ import { DEFAULT_SETTINGS } from '@settings/settings';
 import { ServiceProvider } from '@src/constants';
 import BookSearchPlugin from '@src/main';
 import languages from '@utils/languages';
-import { ButtonComponent, Modal, Notice, Setting, TextComponent } from 'obsidian';
+import { ButtonComponent, DropdownComponent, Modal, Notice, Setting, TextComponent } from 'obsidian';
 
 export class BookSearchModal extends Modal {
   private readonly SEARCH_BUTTON_TEXT = 'Search';
@@ -17,6 +17,7 @@ export class BookSearchModal extends Modal {
   constructor(
     private plugin: BookSearchPlugin,
     private query: string,
+    private searchType: string, // text or isbn
     private callback: (error: Error | null, result?: Book[]) => void,
   ) {
     super(plugin.app);
@@ -35,8 +36,9 @@ export class BookSearchModal extends Modal {
 
     this.setBusy(true);
     try {
-      const searchResults = await this.serviceProvider.getByQuery(this.query, this.options);
-      if (!searchResults?.length) return void new Notice(`No results found for "${this.query}"`);
+      const searchResults = await this.serviceProvider.getByQuery(this.query, this.searchType, this.options);
+      console.log(searchResults);
+      if (!searchResults?.length) return void new Notice(`No results found for "${this.query}" as ${this.searchType}`);
       this.callback(null, searchResults);
     } catch (err) {
       this.callback(err as Error);
@@ -54,9 +56,16 @@ export class BookSearchModal extends Modal {
     contentEl.createDiv({ cls: 'book-search-plugin__search-modal--input' }, el => {
       new TextComponent(el)
         .setValue(this.query)
-        .setPlaceholder('Search by keyword or ISBN')
+        .setPlaceholder('Search text')
         .onChange(value => (this.query = value))
         .inputEl.addEventListener('keydown', event => event.key === 'Enter' && !event.isComposing && this.searchBook());
+    });
+    contentEl.createDiv({ cls: 'book-search-plugin__search-modal--dropdown' }, el => {
+      new DropdownComponent(el)
+        .setValue(this.searchType)
+        .addOption('text', 'Text')
+        .addOption('isbn', 'ISBN')
+        .onChange(value => (this.searchType = value));
     });
     new Setting(this.contentEl).addButton(btn => {
       this.okBtnRef = btn
