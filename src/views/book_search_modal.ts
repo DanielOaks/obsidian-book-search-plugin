@@ -53,14 +53,15 @@ export class BookSearchModal extends Modal {
     contentEl.createEl('h2', { text: 'Search Book' });
     if (this.plugin.settings.serviceProvider === ServiceProvider.google && this.plugin.settings.askForLocale)
       this.renderSelectLocale();
-    contentEl.createDiv({ cls: 'book-search-plugin__search-modal--input' }, el => {
+    const searchBarEl = contentEl.createDiv({ cls: 'book-search-plugin__search-modal--sidebyside' });
+    searchBarEl.createDiv({ cls: 'book-search-plugin__search-modal--input' }, el => {
       new TextComponent(el)
         .setValue(this.query)
         .setPlaceholder('Search text')
         .onChange(value => (this.query = value))
         .inputEl.addEventListener('keydown', event => event.key === 'Enter' && !event.isComposing && this.searchBook());
     });
-    contentEl.createDiv({ cls: 'book-search-plugin__search-modal--dropdown' }, el => {
+    searchBarEl.createDiv({ cls: 'book-search-plugin__search-modal--dropdown' }, el => {
       new DropdownComponent(el)
         .setValue(this.searchType)
         .addOption('text', 'Text')
