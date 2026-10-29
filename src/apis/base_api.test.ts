@@ -9,6 +9,7 @@ import { OpenLibraryBooksApi } from './openlibrary_books_api';
 const settings = {
   serviceProvider: ServiceProvider.google,
   localePreference: 'default',
+  defaultLanguage: 'English',
   enableCoverImageEdgeCurl: true,
   apiKey: '',
   naverClientId: '',

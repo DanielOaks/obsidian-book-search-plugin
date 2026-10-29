@@ -12,6 +12,7 @@ import {
   executeInlineScriptsTemplates,
 } from '@utils/template';
 import { replaceVariableSyntax, makeFileName, applyDefaultFrontMatter, toStringFrontMatter } from '@utils/utils';
+import { DEFAULT_MEDIA_TYPE } from '@utils/book_media_type';
 
 export default class BookSearchPlugin extends Plugin {
   settings: BookSearchPluginSettings;
@@ -64,9 +65,13 @@ export default class BookSearchPlugin extends Plugin {
       defaultFrontmatterKeyType,
       enableCoverImageSave,
       coverImagePath,
+      defaultLanguage,
       frontmatter, // @deprecated
       content, // @deprecated
     } = this.settings;
+
+    book.languages ||= defaultLanguage;
+    book.mediaType ||= DEFAULT_MEDIA_TYPE;
 
     let contentBody = '';
 

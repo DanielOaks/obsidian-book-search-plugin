@@ -1,4 +1,6 @@
 import { Book } from '@models/book.model';
+import { resolveLanguage } from '@utils/book_languages';
+import { resolveOpenLibraryMediaType } from '@utils/book_media_type';
 import { apiGet, BaseBooksApiImpl } from './base_api';
 import { OpenLibraryBookItem, OpenLibraryBooksResponse } from './models/openlibrary_books_response';
 
@@ -13,18 +15,21 @@ export class OpenLibraryBooksApi implements BaseBooksApiImpl {
   readonly supportsTextSearch = true;
   readonly supportsIsbnSearch = true;
 
+  constructor(private readonly defaultLanguage: string = '') {}
+
   async getByQuery(query: string, searchType: string) {
     try {
       const params = {
         q: `${searchType == 'isbn' ? 'isbn:' : ''}${query}`,
-        fields: 'isbn,title,subtitle,cover_i,publish_date,publisher,author_name,number_of_pages_median',
+        fields:
+          'isbn,title,subtitle,cover_i,publish_date,publisher,author_name,number_of_pages_median,language,format,subject',
       };
       const searchResults = await apiGet<OpenLibraryBooksResponse>('https://openlibrary.org/search.json', params);
       console.log(`Book Search: q: ${query}, searchResults: ${searchResults}`);
       if (!searchResults?.numFound) {
         return [];
       }
-      return searchResults.docs.map(this.createBookItem);
+      return searchResults.docs.map(item => this.createBookItem(item));
     } catch (error) {
       console.warn(error);
       throw error;
@@ -46,6 +51,8 @@ export class OpenLibraryBooksApi implements BaseBooksApiImpl {
       publisher: item.publisher?.[0],
       publishDate: item.publish_date && new Date(item.publish_date?.[0]).toISOString().slice(0, 10),
       totalPage: item.number_of_pages_median,
+      languages: resolveLanguage(item.language, this.defaultLanguage),
+      mediaType: resolveOpenLibraryMediaType(item.format, item.subject),
       isbn: item.isbn?.sort((a, b) => b.length - a.length)[0],
       ...(item.isbn?.some(isbn10) && { isbn10: item.isbn?.find(isbn10) }),
       ...(item.isbn?.some(isbn13) && { isbn13: item.isbn?.find(isbn13) }),

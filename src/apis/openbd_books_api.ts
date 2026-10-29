@@ -1,4 +1,6 @@
 import { Book } from '@models/book.model';
+import { getLanguageName, JAPANESE_LANGUAGE } from '@utils/book_languages';
+import { isComicSeries, MediaType, normalizeOnixProductForm } from '@utils/book_media_type';
 import { apiGet, BaseBooksApiImpl } from './base_api';
 import { OpenBDBookItem, OpenBDBooksResponse } from './models/openbd_books_response';
 
@@ -80,6 +82,8 @@ export class OpenBDBooksApi implements BaseBooksApiImpl {
         '',
       publishDate: this.extractPublishDate(item),
       totalPage: this.extractTotalPage(item),
+      languages: this.extractLanguage(item),
+      mediaType: this.extractMediaType(item),
       coverUrl: summary?.cover || this.extractCoverUrl(item),
       description: this.extractDescription(item),
       isbn,
@@ -120,5 +124,26 @@ export class OpenBDBooksApi implements BaseBooksApiImpl {
     const contents = item.onix?.CollateralDetail?.TextContent ?? [];
     const pick = (textType: string) => contents.find(content => content.TextType === textType)?.Text;
     return pick(TEXT_TYPE_DESCRIPTION) || pick(TEXT_TYPE_SHORT_DESCRIPTION) || item.hanmoto?.kaisetsu105w || '';
+  }
+
+  private extractLanguage(item: OpenBDBookItem): string {
+    const codes = (item.onix?.DescriptiveDetail?.Language ?? [])
+      .map(language => language.LanguageCode)
+      .filter((code): code is string => Boolean(code));
+    return codes.map(getLanguageName).find((name): name is string => Boolean(name)) ?? JAPANESE_LANGUAGE;
+  }
+
+  private extractMediaType(item: OpenBDBookItem): MediaType | undefined {
+    const descriptiveDetail = item.onix?.DescriptiveDetail;
+    const productForm = normalizeOnixProductForm(descriptiveDetail?.ProductForm);
+    if (productForm === 'Comic') return productForm;
+
+    const titleElements = descriptiveDetail?.Collection?.TitleDetail?.TitleElement;
+    const collectionTitles = (Array.isArray(titleElements) ? titleElements : [titleElements])
+      .map(element => element?.TitleText?.content)
+      .filter((title): title is string => Boolean(title));
+    if (isComicSeries([...collectionTitles, item.summary?.series ?? ''], item.summary?.title)) return 'Comic';
+
+    return productForm;
   }
 }

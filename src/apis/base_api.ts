@@ -31,7 +31,7 @@ export function factoryServiceProvider(
       validateNaverSettings(settings);
       return new NaverBooksApi(settings.naverClientId, settings.naverClientSecret);
     case ServiceProvider.openlibrary:
-      return new OpenLibraryBooksApi();
+      return new OpenLibraryBooksApi(settings.defaultLanguage);
     case ServiceProvider.openbd:
       return new OpenBDBooksApi();
     default:

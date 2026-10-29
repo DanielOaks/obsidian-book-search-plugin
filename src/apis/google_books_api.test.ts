@@ -80,6 +80,25 @@ describe('Book creation', () => {
     expect(book.totalPage).toEqual(volumeInfo.pageCount);
   });
 
+  it('Language', () => {
+    expect(book.languages).toEqual('English');
+  });
+
+  it('Media type', () => {
+    // Google Books reports no binding, so the caller falls back to the default
+    expect(book.mediaType).toBeUndefined();
+  });
+
+  it('Media type of a magazine', () => {
+    const magazine = api.createBookItem({ ...volumeInfo, printType: 'MAGAZINE' });
+    expect(magazine.mediaType).toEqual('Magazine');
+  });
+
+  it('Media type of a comic', () => {
+    const comic = api.createBookItem({ ...volumeInfo, categories: ['Comics & Graphic Novels / Manga'] });
+    expect(comic.mediaType).toEqual('Comic');
+  });
+
   it('Cover URL', () => {
     expect(book.coverUrl).toEqual(volumeInfo.imageLinks.thumbnail);
   });

@@ -25,6 +25,9 @@ export interface OpenBDOnix {
     TitleDetail?: { TitleElement?: OpenBDTitleElement | OpenBDTitleElement[] };
     Contributor?: OpenBDContributor[];
     Extent?: OpenBDExtent[];
+    ProductForm?: string;
+    Language?: OpenBDLanguage[];
+    Collection?: OpenBDCollection;
   };
   CollateralDetail?: {
     TextContent?: OpenBDTextContent[];
@@ -53,6 +56,20 @@ export interface OpenBDExtent {
   ExtentType?: string;
   ExtentValue?: string;
   ExtentUnit?: string;
+}
+
+export interface OpenBDLanguage {
+  LanguageRole?: string;
+  LanguageCode?: string;
+  CountryCode?: string;
+}
+
+export interface OpenBDCollection {
+  CollectionType?: string;
+  TitleDetail?: {
+    TitleType?: string;
+    TitleElement?: OpenBDTitleElement | OpenBDTitleElement[];
+  };
 }
 
 export interface OpenBDTextContent {

@@ -1,5 +1,7 @@
 import { apiGet, BaseBooksApiImpl } from '@apis/base_api';
 import { Book } from '@models/book.model';
+import { getLanguageName } from '@utils/book_languages';
+import { resolveGoogleBooksMediaType } from '@utils/book_media_type';
 import { GoogleBooksResponse, VolumeInfo } from './models/google_books_response';
 
 export class GoogleBooksApi implements BaseBooksApiImpl {
@@ -71,6 +73,8 @@ export class GoogleBooksApi implements BaseBooksApiImpl {
       categories: item.categories,
       publisher: item.publisher,
       totalPage: item.pageCount,
+      languages: getLanguageName(item.language),
+      mediaType: resolveGoogleBooksMediaType(item.printType, item.categories),
       coverUrl: this.setCoverImageEdgeCurl(item.imageLinks?.thumbnail ?? '', this.enableCoverImageEdgeCurl),
       coverSmallUrl: this.setCoverImageEdgeCurl(item.imageLinks?.smallThumbnail ?? '', this.enableCoverImageEdgeCurl),
       publishDate: item.publishedDate || '',

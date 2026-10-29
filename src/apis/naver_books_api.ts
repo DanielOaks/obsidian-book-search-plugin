@@ -1,4 +1,5 @@
 import { Book } from '@models/book.model';
+import { KOREAN_LANGUAGE } from '@utils/book_languages';
 import { apiGet, BaseBooksApiImpl } from './base_api';
 import { NaverBookItem, NaverBooksResponse } from './models/naver_books_response';
 
@@ -44,6 +45,7 @@ export class NaverBooksApi implements BaseBooksApiImpl {
       publisher: item.publisher,
       coverUrl: item.image,
       publishDate: item.pubdate?.slice(0, 4) || '',
+      languages: KOREAN_LANGUAGE,
       link: item.link,
       description: item.description,
       isbn: item.isbn,

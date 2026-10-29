@@ -98,6 +98,76 @@ describe('OpenBDBooksApi', () => {
     expect(book.isbn10).toBeUndefined();
   });
 
+  it('defaults to Japanese when ONIX omits the language', () => {
+    expect(book.languages).toEqual('Japanese');
+  });
+
+  it('reads the language from the ONIX record', () => {
+    const japanese = api.createBookItem({
+      onix: { DescriptiveDetail: { Language: [{ LanguageRole: '01', LanguageCode: 'jpn' }] } },
+    });
+    expect(japanese.languages).toEqual('Japanese');
+
+    const english = api.createBookItem({
+      onix: { DescriptiveDetail: { Language: [{ LanguageRole: '01', LanguageCode: 'eng' }] } },
+    });
+    expect(english.languages).toEqual('English');
+  });
+
+  it('leaves the media type to the default for books without a product form', () => {
+    expect(book.mediaType).toBeUndefined();
+  });
+
+  it('reads the media type from the ONIX product form', () => {
+    const hardcover = api.createBookItem({ onix: { DescriptiveDetail: { ProductForm: 'BB' } } });
+    expect(hardcover.mediaType).toEqual('Hardcover');
+
+    const paperback = api.createBookItem({ onix: { DescriptiveDetail: { ProductForm: 'BC' } } });
+    expect(paperback.mediaType).toEqual('Paperback');
+  });
+
+  it('detects manga from the collection title', () => {
+    const manga = api.createBookItem({
+      onix: {
+        DescriptiveDetail: {
+          ProductForm: 'BC',
+          Collection: {
+            CollectionType: '10',
+            TitleDetail: {
+              TitleType: '01',
+              TitleElement: { TitleElementLevel: '02', TitleText: { content: '少年サンデーコミックス' } },
+            },
+          },
+        },
+      },
+    });
+    expect(manga.mediaType).toEqual('Comic');
+  });
+
+  it('detects manga from the summary series', () => {
+    const manga = api.createBookItem({
+      onix: { DescriptiveDetail: { ProductForm: 'BC' } },
+      summary: { title: 'ワンピース 1', series: 'ジャンプ・コミックス' },
+    });
+    expect(manga.mediaType).toEqual('Comic');
+  });
+
+  it('does not detect manga from an unrelated series', () => {
+    const novel = api.createBookItem({
+      onix: { DescriptiveDetail: { ProductForm: 'BC' } },
+      summary: { title: 'こころ', series: '岩波文庫' },
+    });
+    expect(novel.mediaType).toEqual('Paperback');
+  });
+
+  it('does not detect manga from a guide book published under a comics imprint', () => {
+    const guide = api.createBookItem({
+      onix: { DescriptiveDetail: { ProductForm: 'BC' } },
+      summary: { title: 'ぼっち・ざ・ろっく!TVアニメ公式ガイドブック', series: 'Manga time KR comics' },
+    });
+    expect(guide.mediaType).toEqual('Paperback');
+  });
+
   it('falls back to hanmoto when the summary is missing', () => {
     const fallback = api.createBookItem({ hanmoto: { dateshuppan: '2014-04', kaisetsu105w: 'hanmoto description' } });
     expect(fallback.title).toEqual('');

@@ -130,6 +130,16 @@ OpenBD covers Japanese books. It needs no API key and only supports ISBN search 
 
 The search modal also has an **API** dropdown, so you can switch the provider for a single search without changing the plugin settings.
 
+### Default language
+
+Sets the value used for `{{languages}}` when the book metadata does not report a language, for example with Google Books or Open Library.
+The default is `English`. `No text` is also offered, for books that contain only illustrations.
+
+Some providers are tied to a single market and default accordingly, so this setting does not apply to them:
+OpenBD always reports `Japanese` and Naver Book Search always reports `Korean`.
+
+The media type has no setting: it falls back to `Paperback` when the provider reports no binding.
+
 ### Cover Image Edge Curl
 
 By default, the Google Books API adds a "page curl" effect to image thumbnails. Disabling this toggle will remove this effect from the cover images.
@@ -154,6 +164,8 @@ author: [{{author}}]
 category: [{{category}}]
 publisher: {{publisher}}
 publish: {{publishDate}}
+languages: [{{languages}}]
+mediaType: [{{mediaType}}]
 total: {{totalPage}}
 isbn: {{isbn10}} {{isbn13}}
 cover: {{coverUrl}}
@@ -228,6 +240,8 @@ Please find here a definition of the possible variables to be used in your templ
 | description     | Book description.                                                                                                                                  |
 | publisher       | The publisher of the book.                                                                                                                         |
 | totalPage       | The total number of pages in the book.                                                                                                             |
+| languages       | The language of the book, e.g. `English`, `Japanese` or `No text`. Defaults to `Japanese` on OpenBD, `Korean` on Naver, and the setting otherwise. |
+| mediaType       | The media type of the book: `Paperback`, `Hardcover`, `Comic` or `Magazine`. Falls back to `Paperback` when the provider reports no binding.       |
 | coverUrl        | Book cover image URL.                                                                                                                              |
 | coverSmallUrl   | A smaller book cover image URL.                                                                                                                    |
 | localCoverImage | Local path for the downloaded cover image. Requires activation of "Enabling Cover Images."                                                         |

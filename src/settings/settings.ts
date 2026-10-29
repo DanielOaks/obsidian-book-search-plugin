@@ -3,6 +3,7 @@ import { App, DropdownComponent, Notice, PluginSettingTab, Setting } from 'obsid
 
 import { SEARCH_TYPE_LABELS, SearchType, ServiceProvider } from '@src/constants';
 import languages from '@utils/languages';
+import { LANGUAGE_NAMES, NO_TEXT_LANGUAGE } from '@utils/book_languages';
 import { SettingServiceProviderModal } from '@views/setting_service_provider_modal';
 import BookSearchPlugin from '../main';
 import { FileNameFormatSuggest } from './suggesters/FileNameFormatSuggester';
@@ -35,6 +36,7 @@ export interface BookSearchPluginSettings {
   naverClientId: string;
   naverClientSecret: string;
   localePreference: string;
+  defaultLanguage: string;
   apiKey: string;
   openPageOnCompletion: boolean;
   showCoverImageInSearch: boolean;
@@ -57,6 +59,7 @@ export const DEFAULT_SETTINGS: BookSearchPluginSettings = {
   naverClientId: '',
   naverClientSecret: '',
   localePreference: 'default',
+  defaultLanguage: 'English',
   apiKey: '',
   openPageOnCompletion: true,
   showCoverImageInSearch: false,
@@ -287,6 +290,21 @@ export class BookSearchSettingTab extends PluginSettingTab {
             this.plugin.settings.localePreference = newValue;
             await this.plugin.saveSettings();
           });
+      });
+
+    new Setting(containerEl)
+      .setName('Default language')
+      .setDesc('Used for the {{languages}} variable when the book metadata does not report a language.')
+      .addDropdown(dropDown => {
+        Object.values(LANGUAGE_NAMES)
+          .sort((a, b) => a.localeCompare(b))
+          .forEach(language => dropDown.addOption(language, language));
+        dropDown.addOption(NO_TEXT_LANGUAGE, NO_TEXT_LANGUAGE);
+        dropDown.setValue(this.plugin.settings.defaultLanguage ?? DEFAULT_SETTINGS.defaultLanguage);
+        dropDown.onChange(async value => {
+          this.plugin.settings.defaultLanguage = value;
+          await this.plugin.saveSettings();
+        });
       });
 
     new Setting(containerEl)

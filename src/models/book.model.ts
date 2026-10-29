@@ -12,6 +12,8 @@ export interface Book {
   publisher?: string; // 출판사
   publishDate?: string; // 출판일
   totalPage?: number | string; // 전체 페이지
+  languages?: string; // 언어 (e.g. English, Japanese, No text)
+  mediaType?: string; // 미디어 타입 (e.g. Paperback, Hardcover, Comic, Magazine)
   coverUrl?: string; // 커버 URL
   coverSmallUrl?: string; // 커버 URL
   coverMediumUrl?: string; // 커버 URL

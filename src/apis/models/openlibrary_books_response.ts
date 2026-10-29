@@ -13,4 +13,7 @@ export interface OpenLibraryBookItem {
   number_of_pages_median?: number;
   publish_date?: string[];
   publisher?: string[];
+  language?: string[];
+  format?: string[];
+  subject?: string[];
 }
