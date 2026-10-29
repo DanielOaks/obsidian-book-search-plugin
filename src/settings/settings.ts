@@ -1,7 +1,7 @@
 import { replaceDateInString } from '@utils/utils';
-import { App, Notice, PluginSettingTab, Setting } from 'obsidian';
+import { App, DropdownComponent, Notice, PluginSettingTab, Setting } from 'obsidian';
 
-import { ServiceProvider } from '@src/constants';
+import { SEARCH_TYPE_LABELS, SearchType, ServiceProvider } from '@src/constants';
 import languages from '@utils/languages';
 import { SettingServiceProviderModal } from '@views/setting_service_provider_modal';
 import BookSearchPlugin from '../main';
@@ -25,6 +25,7 @@ export interface BookSearchPluginSettings {
   defaultFrontmatterKeyType: DefaultFrontmatterKeyType;
   templateFile: string;
   serviceProvider: ServiceProvider;
+  defaultSearchType: SearchType;
   naverClientId: string;
   naverClientSecret: string;
   localePreference: string;
@@ -46,6 +47,7 @@ export const DEFAULT_SETTINGS: BookSearchPluginSettings = {
   defaultFrontmatterKeyType: DefaultFrontmatterKeyType.camelCase,
   templateFile: '',
   serviceProvider: ServiceProvider.google,
+  defaultSearchType: SearchType.text,
   naverClientId: '',
   naverClientSecret: '',
   localePreference: 'default',
@@ -166,6 +168,7 @@ export class BookSearchSettingTab extends PluginSettingTab {
     let preferredLocaleDropdownSetting: Setting;
     // eslint-disable-next-line prefer-const
     let coverImageEdgeCurlToggleSetting: Setting;
+    let defaultSearchTypeDropdown: DropdownComponent | undefined;
     const hideServiceProviderExtraSettingButton = () => {
       serviceProviderExtraSettingButton.addClass('book-search-plugin__hide');
     };
@@ -200,10 +203,14 @@ export class BookSearchSettingTab extends PluginSettingTab {
         showServiceProviderExtraSettingButton();
         hideServiceProviderExtraSettingDropdown();
         hideCoverImageEdgeCurlToggle();
+        defaultSearchTypeDropdown?.setDisabled(true).setValue(SearchType.text);
       } else {
         hideServiceProviderExtraSettingButton();
         showServiceProviderExtraSettingDropdown();
         showCoverImageEdgeCurlToggle();
+        defaultSearchTypeDropdown
+          ?.setDisabled(false)
+          .setValue(this.plugin.settings.defaultSearchType ?? SearchType.text);
       }
     };
     new Setting(containerEl)
@@ -227,6 +234,22 @@ export class BookSearchSettingTab extends PluginSettingTab {
         toggleServiceProviderExtraSettings();
         component.onClick(() => {
           new SettingServiceProviderModal(this.plugin).open();
+        });
+      });
+
+    const isNaverSelected = () => this.plugin.settings?.serviceProvider === ServiceProvider.naver;
+
+    new Setting(containerEl)
+      .setName('Default search type')
+      .setDesc('Choose the default search type, Text or ISBN.')
+      .addDropdown(dropDown => {
+        defaultSearchTypeDropdown = dropDown;
+        Object.entries(SEARCH_TYPE_LABELS).forEach(([value, label]) => dropDown.addOption(value, label));
+        if (isNaverSelected()) dropDown.setDisabled(true).setValue(SearchType.text);
+        else dropDown.setValue(this.plugin.settings.defaultSearchType ?? SearchType.text);
+        dropDown.onChange(async value => {
+          this.plugin.settings.defaultSearchType = value as SearchType;
+          await this.plugin.saveSettings();
         });
       });
 

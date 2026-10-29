@@ -10,6 +10,8 @@ function formatList(list?: string[]): string {
 }
 
 export class OpenLibraryBooksApi implements BaseBooksApiImpl {
+  readonly supportsIsbnSearch = true;
+
   async getByQuery(query: string, searchType: string) {
     try {
       const params = {

@@ -21,16 +21,49 @@
   display: flex;
 }
 
-.book-search-plugin__search-modal--sidebyside {
+.book-search-plugin__search-modal {
+  --search-modal-label-width: 90px;
+  --search-modal-gap: 12px;
+}
+.book-search-plugin__search-modal--row {
   display: flex;
+  align-items: center;
+  gap: var(--search-modal-gap);
+  margin-bottom: 12px;
+}
+.book-search-plugin__search-modal--row-label {
+  flex: 0 0 auto;
+  width: var(--search-modal-label-width);
+}
+.book-search-plugin__search-modal--row-control {
+  display: flex;
+  align-items: center;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.book-search-plugin__search-modal--row-control input,
+.book-search-plugin__search-modal--row-control .dropdown {
+  width: 100%;
+}
+.book-search-plugin__search-modal--search-bar {
+  display: flex;
+  align-items: center;
   gap: 10px;
+  margin-bottom: 12px;
 }
-.book-search-plugin__search-modal--input {
-  width: 100%;
-  padding-bottom: 18px;
+.book-search-plugin__search-modal--search-input {
+  flex: 1 1 auto;
+  min-width: 0;
 }
-.book-search-plugin__search-modal--input input {
+.book-search-plugin__search-modal--search-input input {
   width: 100%;
+}
+.book-search-plugin__search-modal--search-type {
+  flex: 0 0 auto;
+}
+.book-search-plugin__search-modal--button {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .book-suggestion-item {

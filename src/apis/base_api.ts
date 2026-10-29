@@ -7,18 +7,22 @@ import { NaverBooksApi } from './naver_books_api';
 import { OpenLibraryBooksApi } from './openlibrary_books_api';
 
 export interface BaseBooksApiImpl {
+  readonly supportsIsbnSearch: boolean;
   getByQuery(query: string, searchType: string, options?: Record<string, string>): Promise<Book[]>;
 }
 
-class ConfigurationError extends Error {
+export class ConfigurationError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'ConfigurationError';
   }
 }
 
-export function factoryServiceProvider(settings: BookSearchPluginSettings): BaseBooksApiImpl {
-  switch (settings.serviceProvider) {
+export function factoryServiceProvider(
+  settings: BookSearchPluginSettings,
+  provider: ServiceProvider = settings.serviceProvider,
+): BaseBooksApiImpl {
+  switch (provider) {
     case ServiceProvider.google:
       return new GoogleBooksApi(settings.localePreference, settings.enableCoverImageEdgeCurl, settings.apiKey);
     case ServiceProvider.naver:

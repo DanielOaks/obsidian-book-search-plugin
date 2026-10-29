@@ -3,6 +3,7 @@ import { Book } from '@models/book.model';
 import { GoogleBooksResponse, VolumeInfo } from './models/google_books_response';
 
 export class GoogleBooksApi implements BaseBooksApiImpl {
+  readonly supportsIsbnSearch = true;
   private static readonly MAX_RESULTS = 40;
   private static readonly PRINT_TYPE = 'books';
 
