@@ -61,9 +61,15 @@
 .book-search-plugin__search-modal--search-type {
   flex: 0 0 auto;
 }
+.book-search-plugin__search-modal--message {
+  margin-bottom: 12px;
+  color: var(--text-muted);
+  font-size: var(--font-ui-small);
+}
 .book-search-plugin__search-modal--button {
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
 }
 
 .book-suggestion-item {

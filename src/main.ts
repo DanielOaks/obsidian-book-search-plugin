@@ -54,8 +54,10 @@ export default class BookSearchPlugin extends Plugin {
 
   // open modal for book search
   async searchBookMetadata(query?: string, searchType?: string): Promise<Book> {
-    const searchedBooks = await this.openBookSearchModal(query, searchType);
-    return await this.openBookSuggestModal(searchedBooks);
+    const { books, manualEntry } = await this.openBookSearchModal(query, searchType);
+    // A manually created book is always the one the user wants, so skip the suggestion picker
+    if (manualEntry) return books[0];
+    return await this.openBookSuggestModal(books);
   }
 
   async getRenderedContents(book: Book) {
@@ -194,10 +196,10 @@ export default class BookSearchPlugin extends Plugin {
     await new CursorJumper(this.app).jumpToNextCursorLocation();
   }
 
-  async openBookSearchModal(query = '', searchType = ''): Promise<Book[]> {
+  async openBookSearchModal(query = '', searchType = ''): Promise<{ books: Book[]; manualEntry: boolean }> {
     return new Promise((resolve, reject) => {
-      return new BookSearchModal(this, query, searchType, (error, results) => {
-        return error ? reject(error) : resolve(results);
+      return new BookSearchModal(this, query, searchType, (error, results, manualEntry) => {
+        return error ? reject(error) : resolve({ books: results ?? [], manualEntry: !!manualEntry });
       }).open();
     });
   }

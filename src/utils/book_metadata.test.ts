@@ -1,4 +1,5 @@
-import { getLanguageName, resolveLanguage } from './book_languages';
+import { ServiceProvider } from '@src/constants';
+import { getLanguageName, getProviderDefaultLanguage, resolveLanguage } from './book_languages';
 import {
   DEFAULT_MEDIA_TYPE,
   isComicSeries,
@@ -80,6 +81,23 @@ describe('resolveLanguage', () => {
   it('falls back to the first resolvable language', () => {
     expect(resolveLanguage(['spa', 'fre'], 'English')).toEqual('Spanish');
     expect(resolveLanguage(['und', 'fre'], 'English')).toEqual('French');
+  });
+});
+
+describe('getProviderDefaultLanguage', () => {
+  it('uses the language the provider is bound to', () => {
+    expect(getProviderDefaultLanguage(ServiceProvider.naver, 'English')).toEqual('Korean');
+    expect(getProviderDefaultLanguage(ServiceProvider.openbd, 'English')).toEqual('Japanese');
+  });
+
+  it('uses the configured default language for global providers', () => {
+    expect(getProviderDefaultLanguage(ServiceProvider.google, 'French')).toEqual('French');
+    expect(getProviderDefaultLanguage(ServiceProvider.openlibrary, 'German')).toEqual('German');
+  });
+
+  it('falls back to English when no default is configured', () => {
+    expect(getProviderDefaultLanguage(ServiceProvider.google)).toEqual('English');
+    expect(getProviderDefaultLanguage(ServiceProvider.openlibrary, '  ')).toEqual('English');
   });
 });
 

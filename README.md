@@ -103,6 +103,16 @@ For those who enable this feature, we've added CSS styling to ensure that cover 
 
 <img width="600" src="https://user-images.githubusercontent.com/3969643/161974593-1b7bfe69-cb9d-47d7-a43d-1d725295a122.png">
 
+### Creating a book that is not in any catalog
+
+Some books cannot be found, for example unpublished drafts or private editions. The search modal has a
+**Create empty book** button next to **Search**, and it is also offered when a search returns no results.
+
+The note is then created with empty metadata, so you can fill in the title, author and the other fields
+yourself. The values that can be derived without a catalog are filled in for you: `languages` gets the
+default of the selected API (see [Default language](#default-language)) and `mediaType` gets the
+plugin's fallback binding. Since the title is empty, the file name falls back to `Untitled`.
+
 <br>
 
 ## How to use settings
@@ -117,6 +127,7 @@ Set the folder location where the new file is created. Otherwise, a new file is 
 
 You can set the file name format. The default format is `{{title}} - {{author}}`.
 You can use `{{DATE}}` or `{{DATE:YYYYMMDD}}` to set a unique file name.
+If the resulting name is empty, `Untitled` is used instead.
 
 ### Template file
 

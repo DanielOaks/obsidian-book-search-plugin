@@ -1,3 +1,5 @@
+import { ServiceProvider } from '@src/constants';
+
 /**
  * Maps ISO 639-1 and ISO 639-2 language codes to the display names used in book notes.
  *
@@ -407,6 +409,25 @@ export const NO_TEXT_LANGUAGE = 'No text';
  */
 export const JAPANESE_LANGUAGE = LANGUAGE_NAMES.ja;
 export const KOREAN_LANGUAGE = LANGUAGE_NAMES.ko;
+
+/** Language used when neither the provider nor the user's settings name one. */
+export const FALLBACK_LANGUAGE = LANGUAGE_NAMES.en;
+
+/**
+ * Language to record for a book that has no language information at all, such as a manually
+ * created entry. Providers bound to a single market always report their own language, the others
+ * defer to the user's default language.
+ */
+export function getProviderDefaultLanguage(provider: ServiceProvider, defaultLanguage?: string): string {
+  switch (provider) {
+    case ServiceProvider.naver:
+      return KOREAN_LANGUAGE;
+    case ServiceProvider.openbd:
+      return JAPANESE_LANGUAGE;
+    default:
+      return defaultLanguage?.trim() || FALLBACK_LANGUAGE;
+  }
+}
 
 /** Code values that describe the absence of text rather than a language. */
 export const NO_TEXT_CODES = new Set(['zxx']);

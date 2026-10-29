@@ -49,4 +49,14 @@ describe('util.js', () => {
     };
     expect(utils.makeFileName(newBook, '{{title}} - {{author}}')).toBe('코스모스 창백한 푸른점 - 칼 세이건.md');
   });
+
+  it('makeFileName 6', () => {
+    const newBook: Book = { title: '', author: '', authors: [] };
+    expect(utils.makeFileName(newBook)).toBe('Untitled.md');
+  });
+
+  it('makeFileName 7', () => {
+    const newBook: Book = { title: '', author: '', authors: [] };
+    expect(utils.makeFileName(newBook, '{{author}} - {{title}}')).toBe('Untitled.md');
+  });
 });

@@ -3,6 +3,8 @@ import { Book } from '@models/book.model';
 import { DEFAULT_SETTINGS } from '@settings/settings';
 import { SEARCH_TYPE_LABELS, SearchType, ServiceProvider, toSearchType } from '@src/constants';
 import BookSearchPlugin from '@src/main';
+import { getProviderDefaultLanguage } from '@utils/book_languages';
+import { DEFAULT_MEDIA_TYPE } from '@utils/book_media_type';
 import languages from '@utils/languages';
 import { ButtonComponent, DropdownComponent, Modal, Notice, TextComponent } from 'obsidian';
 
@@ -16,8 +18,11 @@ const SERVICE_PROVIDER_LABELS: Record<ServiceProvider, string> = {
 export class BookSearchModal extends Modal {
   private readonly SEARCH_BUTTON_TEXT = 'Search';
   private readonly REQUESTING_BUTTON_TEXT = 'Requesting...';
+  private readonly EMPTY_BOOK_BUTTON_TEXT = 'Create empty book';
   private isBusy = false;
   private okBtnRef?: ButtonComponent;
+  private emptyBookBtnRef?: ButtonComponent;
+  private messageEl?: HTMLElement;
   private booksApi: BaseBooksApiImpl;
   private selectedProvider: ServiceProvider;
   private options: { locale: string };
@@ -30,7 +35,7 @@ export class BookSearchModal extends Modal {
     private plugin: BookSearchPlugin,
     private query: string,
     searchType: string,
-    private callback: (error: Error | null, result?: Book[]) => void,
+    private callback: (error: Error | null, result?: Book[], manualEntry?: boolean) => void,
     provider: ServiceProvider = plugin.settings.serviceProvider ?? ServiceProvider.google,
   ) {
     super(plugin.app);
@@ -61,24 +66,79 @@ export class BookSearchModal extends Modal {
   setBusy(busy: boolean): void {
     this.isBusy = busy;
     this.okBtnRef?.setDisabled(busy).setButtonText(busy ? this.REQUESTING_BUTTON_TEXT : this.SEARCH_BUTTON_TEXT);
+    this.emptyBookBtnRef?.setDisabled(busy);
+  }
+
+  private showMessage(message: string): void {
+    if (!this.messageEl) return void new Notice(message);
+    this.messageEl.setText(message);
+    this.messageEl.removeClass('book-search-plugin__hide');
+  }
+
+  private clearMessage(): void {
+    this.messageEl?.setText('');
+    this.messageEl?.addClass('book-search-plugin__hide');
   }
 
   async searchBook(): Promise<void> {
-    if (!this.query) return void new Notice('No query entered.');
     if (this.isBusy) return;
+
+    this.clearMessage();
+    if (!this.query.trim()) return void this.showMessage('Enter a query to search for a book.');
 
     this.setBusy(true);
     try {
       const searchResults = await this.booksApi.getByQuery(this.query, this.searchType, this.options);
       console.log(searchResults);
-      if (!searchResults?.length) return void new Notice(`No results found for "${this.query}" as ${this.searchType}`);
+      if (!searchResults?.length) {
+        // Keeping the modal open lets the user create an empty book note instead
+        return void this.showMessage(`No results found for "${this.query}". Create an empty book instead?`);
+      }
       this.callback(null, searchResults);
+      this.close();
     } catch (err) {
       this.callback(err as Error);
+      this.close();
     } finally {
       this.setBusy(false);
-      this.close();
     }
+  }
+
+  /**
+   * Resolves the search modal with an empty book, for titles that no provider knows about.
+   *
+   * Only the values that can be derived locally are filled in: the language comes from the
+   * selected provider and the media type from the plugin default.
+   */
+  createEmptyBook(): void {
+    if (this.isBusy) return;
+
+    const book: Book = {
+      title: '',
+      subtitle: '',
+      author: '',
+      authors: [],
+      category: '',
+      categories: [],
+      publisher: '',
+      publishDate: '',
+      totalPage: '',
+      languages: getProviderDefaultLanguage(this.selectedProvider, this.plugin.settings.defaultLanguage),
+      mediaType: DEFAULT_MEDIA_TYPE,
+      coverUrl: '',
+      coverSmallUrl: '',
+      coverMediumUrl: '',
+      coverLargeUrl: '',
+      isbn10: '',
+      isbn13: '',
+      isbn: '',
+      link: '',
+      description: '',
+      previewLink: '',
+    };
+
+    this.callback(null, [book], true);
+    this.close();
   }
 
   onOpen(): void {
@@ -116,7 +176,13 @@ export class BookSearchModal extends Modal {
       .onChange(value => (this.searchType = toSearchType(value)));
     this.updateSearchTypeOptions();
 
+    this.messageEl = contentEl.createDiv({ cls: 'book-search-plugin__search-modal--message book-search-plugin__hide' });
+
     const buttonEl = contentEl.createDiv({ cls: 'book-search-plugin__search-modal--button' });
+    this.emptyBookBtnRef = new ButtonComponent(buttonEl)
+      .setButtonText(this.EMPTY_BOOK_BUTTON_TEXT)
+      .setTooltip('Skip the search and create an empty book note')
+      .onClick(() => this.createEmptyBook());
     this.okBtnRef = new ButtonComponent(buttonEl)
       .setButtonText(this.SEARCH_BUTTON_TEXT)
       .setCta()

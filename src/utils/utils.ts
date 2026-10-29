@@ -6,6 +6,12 @@ export const NUMBER_REGEX = /^-?[0-9]*$/;
 export const DATE_REGEX = /{{DATE(\+-?[0-9]+)?}}/;
 export const DATE_REGEX_FORMATTED = /{{DATE:([^}\n\r+]*)(\+-?[0-9]+)?}}/;
 
+/** Fallback used when a book has neither a title nor a usable file name format. */
+export const UNTITLED_FILE_NAME = 'Untitled';
+
+/** A file name that consists of nothing but the separators a format may leave behind. */
+const SEPARATOR_ONLY_REGEX = /^[\s_.,-]*$/;
+
 export function replaceIllegalFileNameCharactersInString(text: string) {
   return text.replace(/[\\,#%&{}/*<>$":@.?|]/g, '').replace(/\s+/g, ' ');
 }
@@ -21,7 +27,10 @@ export function makeFileName(book: Book, fileNameFormat?: string, extension = 'm
   } else {
     result = !book.author ? book.title : `${book.title} - ${book.author}`;
   }
-  return replaceIllegalFileNameCharactersInString(result) + `.${extension}`;
+  // A manual book entry has an empty title, which can reduce the format to separators only
+  result = replaceIllegalFileNameCharactersInString(result);
+  if (SEPARATOR_ONLY_REGEX.test(result)) result = UNTITLED_FILE_NAME;
+  return result + `.${extension}`;
 }
 
 export function changeSnakeCase(book: Book) {
