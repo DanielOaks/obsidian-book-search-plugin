@@ -3,6 +3,7 @@ import { ServiceProvider } from '@src/constants';
 import { ConfigurationError, factoryServiceProvider } from './base_api';
 import { GoogleBooksApi } from './google_books_api';
 import { NaverBooksApi } from './naver_books_api';
+import { OpenBDBooksApi } from './openbd_books_api';
 import { OpenLibraryBooksApi } from './openlibrary_books_api';
 
 const settings = {
@@ -44,11 +45,25 @@ describe('factoryServiceProvider', () => {
     expect(() => factoryServiceProvider(settings, ServiceProvider.naver)).toThrow(ConfigurationError);
   });
 
+  it('creates the OpenBD API', () => {
+    expect(factoryServiceProvider(settings, ServiceProvider.openbd)).toBeInstanceOf(OpenBDBooksApi);
+  });
+
   it('reports whether each provider supports ISBN search', () => {
     expect(factoryServiceProvider(settings, ServiceProvider.google).supportsIsbnSearch).toBe(true);
     expect(factoryServiceProvider(settings, ServiceProvider.openlibrary).supportsIsbnSearch).toBe(true);
     expect(factoryServiceProvider({ ...settings, ...naverCredentials }, ServiceProvider.naver).supportsIsbnSearch).toBe(
       false,
     );
+    expect(factoryServiceProvider(settings, ServiceProvider.openbd).supportsIsbnSearch).toBe(true);
+  });
+
+  it('reports whether each provider supports text search', () => {
+    expect(factoryServiceProvider(settings, ServiceProvider.google).supportsTextSearch).toBe(true);
+    expect(factoryServiceProvider(settings, ServiceProvider.openlibrary).supportsTextSearch).toBe(true);
+    expect(factoryServiceProvider({ ...settings, ...naverCredentials }, ServiceProvider.naver).supportsTextSearch).toBe(
+      true,
+    );
+    expect(factoryServiceProvider(settings, ServiceProvider.openbd).supportsTextSearch).toBe(false);
   });
 });

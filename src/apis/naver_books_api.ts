@@ -3,6 +3,7 @@ import { apiGet, BaseBooksApiImpl } from './base_api';
 import { NaverBookItem, NaverBooksResponse } from './models/naver_books_response';
 
 export class NaverBooksApi implements BaseBooksApiImpl {
+  readonly supportsTextSearch = true;
   readonly supportsIsbnSearch = false;
 
   constructor(

@@ -2,6 +2,7 @@ export enum ServiceProvider {
   openlibrary = 'openlibrary',
   google = 'google',
   naver = 'naver',
+  openbd = 'openbd',
 }
 
 export enum SearchType {

@@ -10,6 +10,7 @@ const SERVICE_PROVIDER_LABELS: Record<ServiceProvider, string> = {
   [ServiceProvider.google]: 'Google Books (Global)',
   [ServiceProvider.openlibrary]: 'Open Library (Global)',
   [ServiceProvider.naver]: 'Naver (Korean)',
+  [ServiceProvider.openbd]: 'OpenBD (Japanese)',
 };
 
 export class BookSearchModal extends Modal {
@@ -22,6 +23,7 @@ export class BookSearchModal extends Modal {
   private options: { locale: string };
   private providerSettingsEl?: HTMLElement;
   private searchTypeDropdown?: DropdownComponent;
+  private queryInput?: TextComponent;
   private searchType: SearchType;
 
   constructor(
@@ -94,11 +96,16 @@ export class BookSearchModal extends Modal {
     this.renderProviderSettings();
 
     const searchBarEl = contentEl.createDiv({ cls: 'book-search-plugin__search-modal--search-bar' });
-    new TextComponent(searchBarEl.createDiv({ cls: 'book-search-plugin__search-modal--search-input' }))
+    this.queryInput = new TextComponent(
+      searchBarEl.createDiv({ cls: 'book-search-plugin__search-modal--search-input' }),
+    )
       .setValue(this.query)
       .setPlaceholder('Search text')
-      .onChange(value => (this.query = value))
-      .inputEl.addEventListener('keydown', event => event.key === 'Enter' && !event.isComposing && this.searchBook());
+      .onChange(value => (this.query = value));
+    this.queryInput.inputEl.addEventListener(
+      'keydown',
+      event => event.key === 'Enter' && !event.isComposing && this.searchBook(),
+    );
 
     this.searchTypeDropdown = new DropdownComponent(
       searchBarEl.createDiv({ cls: 'book-search-plugin__search-modal--search-type' }),
@@ -134,11 +141,18 @@ export class BookSearchModal extends Modal {
     if (!dropdown) return;
 
     const supportsIsbn = this.booksApi.supportsIsbnSearch;
-    const isbnOption = dropdown.selectEl.querySelector<HTMLOptionElement>('option[value="isbn"]');
-    if (isbnOption) isbnOption.disabled = !supportsIsbn;
+    const supportsText = this.booksApi.supportsTextSearch;
+    const setOptionDisabled = (value: SearchType, disabled: boolean) => {
+      const option = dropdown.selectEl.querySelector<HTMLOptionElement>(`option[value="${value}"]`);
+      if (option) option.disabled = disabled;
+    };
+    setOptionDisabled(SearchType.isbn, !supportsIsbn);
+    setOptionDisabled(SearchType.text, !supportsText);
 
     if (!supportsIsbn && this.searchType === SearchType.isbn) this.searchType = SearchType.text;
+    if (!supportsText && this.searchType === SearchType.text) this.searchType = SearchType.isbn;
     dropdown.setValue(this.searchType);
+    this.queryInput?.setPlaceholder(supportsText ? 'Search text' : 'Search ISBN (hyphens optional)');
   }
 
   renderSelectLocale(containerEl: HTMLElement = this.contentEl) {

@@ -11,6 +11,12 @@ import { FolderSuggest } from './suggesters/FolderSuggester';
 
 const docUrl = 'https://github.com/anpigon/obsidian-book-search-plugin';
 
+// Service providers that only support one search type force it in the settings.
+const FORCED_SEARCH_TYPES: Partial<Record<ServiceProvider, SearchType>> = {
+  [ServiceProvider.naver]: SearchType.text,
+  [ServiceProvider.openbd]: SearchType.isbn,
+};
+
 export enum DefaultFrontmatterKeyType {
   snakeCase = 'Snake Case',
   camelCase = 'Camel Case',
@@ -199,15 +205,23 @@ export class BookSearchSettingTab extends PluginSettingTab {
     const toggleServiceProviderExtraSettings = (
       serviceProvider: ServiceProvider = this.plugin.settings?.serviceProvider,
     ) => {
+      const forcedSearchType = FORCED_SEARCH_TYPES[serviceProvider];
       if (serviceProvider === ServiceProvider.naver) {
         showServiceProviderExtraSettingButton();
         hideServiceProviderExtraSettingDropdown();
         hideCoverImageEdgeCurlToggle();
-        defaultSearchTypeDropdown?.setDisabled(true).setValue(SearchType.text);
+      } else if (serviceProvider === ServiceProvider.openbd) {
+        hideServiceProviderExtraSettingButton();
+        hideServiceProviderExtraSettingDropdown();
+        hideCoverImageEdgeCurlToggle();
       } else {
         hideServiceProviderExtraSettingButton();
         showServiceProviderExtraSettingDropdown();
         showCoverImageEdgeCurlToggle();
+      }
+      if (forcedSearchType) {
+        defaultSearchTypeDropdown?.setDisabled(true).setValue(forcedSearchType);
+      } else {
         defaultSearchTypeDropdown
           ?.setDisabled(false)
           .setValue(this.plugin.settings.defaultSearchType ?? SearchType.text);
@@ -221,6 +235,7 @@ export class BookSearchSettingTab extends PluginSettingTab {
         dropDown.addOption(ServiceProvider.google, `${ServiceProvider.google} (Global)`);
         dropDown.addOption(ServiceProvider.openlibrary, `${ServiceProvider.openlibrary} (Global)`);
         dropDown.addOption(ServiceProvider.naver, `${ServiceProvider.naver} (Korean)`);
+        dropDown.addOption(ServiceProvider.openbd, `${ServiceProvider.openbd} (Japanese)`);
         dropDown.setValue(this.plugin.settings?.serviceProvider ?? ServiceProvider.google);
         dropDown.onChange(async value => {
           const newValue = value as ServiceProvider;
@@ -237,7 +252,7 @@ export class BookSearchSettingTab extends PluginSettingTab {
         });
       });
 
-    const isNaverSelected = () => this.plugin.settings?.serviceProvider === ServiceProvider.naver;
+    const getForcedSearchType = () => FORCED_SEARCH_TYPES[this.plugin.settings?.serviceProvider];
 
     new Setting(containerEl)
       .setName('Default search type')
@@ -245,7 +260,8 @@ export class BookSearchSettingTab extends PluginSettingTab {
       .addDropdown(dropDown => {
         defaultSearchTypeDropdown = dropDown;
         Object.entries(SEARCH_TYPE_LABELS).forEach(([value, label]) => dropDown.addOption(value, label));
-        if (isNaverSelected()) dropDown.setDisabled(true).setValue(SearchType.text);
+        const forcedSearchType = getForcedSearchType();
+        if (forcedSearchType) dropDown.setDisabled(true).setValue(forcedSearchType);
         else dropDown.setValue(this.plugin.settings.defaultSearchType ?? SearchType.text);
         dropDown.onChange(async value => {
           this.plugin.settings.defaultSearchType = value as SearchType;

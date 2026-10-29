@@ -124,8 +124,9 @@ You can set the template file location. There is an example template at the bott
 
 ### Service Provider
 
-You can set up the services that you use to search for books. Google Books, Open Library, and Naver(네이버) are available now.
+You can set up the services that you use to search for books. Google Books, Open Library, Naver(네이버), and OpenBD are available now.
 To use Naver Book Search, clientId and clientSecret are required. I will explain how to get clientId and clientSecret from Naver on my blog.
+OpenBD covers Japanese books. It needs no API key and only supports ISBN search (hyphens are optional, e.g. `978-4-7808-0204-7`).
 
 The search modal also has an **API** dropdown, so you can switch the provider for a single search without changing the plugin settings.
 
