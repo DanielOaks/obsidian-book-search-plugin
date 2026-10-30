@@ -1,6 +1,6 @@
 import { Book } from '@models/book.model';
 import { getLanguageName, JAPANESE_LANGUAGE } from '@utils/book_languages';
-import { isComicSeries, MediaType, normalizeOnixProductForm } from '@utils/book_media_type';
+import { MediaType, resolveOpenBDMediaType } from '@utils/book_media_type';
 import { apiGet, BaseBooksApiImpl } from './base_api';
 import { OpenBDBookItem, OpenBDBooksResponse } from './models/openbd_books_response';
 
@@ -135,15 +135,21 @@ export class OpenBDBooksApi implements BaseBooksApiImpl {
 
   private extractMediaType(item: OpenBDBookItem): MediaType | undefined {
     const descriptiveDetail = item.onix?.DescriptiveDetail;
-    const productForm = normalizeOnixProductForm(descriptiveDetail?.ProductForm);
-    if (productForm === 'Comic') return productForm;
-
     const titleElements = descriptiveDetail?.Collection?.TitleDetail?.TitleElement;
     const collectionTitles = (Array.isArray(titleElements) ? titleElements : [titleElements])
       .map(element => element?.TitleText?.content)
       .filter((title): title is string => Boolean(title));
-    if (isComicSeries([...collectionTitles, item.summary?.series ?? ''], item.summary?.title)) return 'Comic';
+    const title = item.summary?.title || first(descriptiveDetail?.TitleDetail?.TitleElement)?.TitleText?.content;
 
-    return productForm;
+    return resolveOpenBDMediaType({
+      productForm: descriptiveDetail?.ProductForm,
+      series: [...collectionTitles, item.summary?.series],
+      volume: item.summary?.volume,
+      title,
+      subjects: (descriptiveDetail?.Subject ?? []).map(subject => ({
+        scheme: subject?.SubjectSchemeIdentifier,
+        code: subject?.SubjectCode,
+      })),
+    });
   }
 }

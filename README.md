@@ -150,6 +150,9 @@ Some providers are tied to a single market and default accordingly, so this sett
 OpenBD always reports `Japanese` and Naver Book Search always reports `Korean`.
 
 The media type has no setting: it falls back to `Paperback` when the provider reports no binding.
+OpenBD only reports a binding for a minority of Japanese books, so comics are also recognised from the
+imprint the publisher records (`モーニングKC`, `ＭＦＣキューンシリーズ`, `ビッグガンガンコミックス`, …) and from the
+JPRO book code.
 
 ### Cover Image Edge Curl
 

@@ -28,6 +28,7 @@ export interface OpenBDOnix {
     ProductForm?: string;
     Language?: OpenBDLanguage[];
     Collection?: OpenBDCollection;
+    Subject?: OpenBDSubject[];
   };
   CollateralDetail?: {
     TextContent?: OpenBDTextContent[];
@@ -70,6 +71,15 @@ export interface OpenBDCollection {
     TitleType?: string;
     TitleElement?: OpenBDTitleElement | OpenBDTitleElement[];
   };
+}
+
+/** ONIX `<Subject>`, e.g. the JPRO book code Japanese publishers assign to a title. */
+export interface OpenBDSubject {
+  MainSubject?: string;
+  SubjectSchemeIdentifier?: string;
+  SubjectSchemeName?: string;
+  SubjectCode?: string;
+  SubjectHeadingText?: string;
 }
 
 export interface OpenBDTextContent {
